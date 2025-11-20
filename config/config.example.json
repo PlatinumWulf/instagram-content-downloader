@@ -1,0 +1,16 @@
+{
+  "download_videos": true,
+  "download_thumbnails": true,
+  "download_geotags": false,
+  "download_comments": false,
+  "save_metadata": true,
+  "compress_json": false,
+  "max_attempts": 3,
+  "request_timeout": 300.0,
+  "sleep_time": 3,
+  "download_posts": true,
+  "download_stories": false,
+  "download_highlights": false,
+  "download_tagged": false,
+  "download_igtv": false
+}

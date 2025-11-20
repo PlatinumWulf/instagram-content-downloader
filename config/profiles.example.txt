@@ -1,0 +1,11 @@
+# Lista profili Instagram do pobrania
+# Linie zaczynające się od # są ignorowane
+# Możesz używać nazw użytkowników lub pełnych linków
+
+# Przykładowe profile (usuń lub zamień na swoje)
+coding.kitty
+python
+https://www.instagram.com/instagram/
+
+# Dodaj swoje profile poniżej:
+

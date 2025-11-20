@@ -1,0 +1,53 @@
+# Sesje Instagram - WRAŻLIWE!
+session*.json
+session_*
+browser_session.json
+*_session.json
+
+# Zmienne środowiskowe - WRAŻLIWE!
+.env
+.env.local
+.env.*.local
+
+# Konfiguracja (może zawierać dane wrażliwe)
+config.json
+
+# Pobrane pliki i dane
+data/
+
+# Nie ignoruj katalogów projektu
+!src/
+!tests/
+!config/
+!docs/
+!logs/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# System
+.DS_Store
+Thumbs.db
+logs/

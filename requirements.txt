@@ -1,0 +1,15 @@
+# Instagram Content Downloader - Wymagane biblioteki
+# Instalacja: pip install -r requirements.txt
+
+# Podstawowe zależności
+instaloader>=4.10.3
+python-dotenv>=1.0.0
+cryptography>=41.0.0
+tqdm>=4.66.0
+
+# Opcjonalne - dla logowania przez przeglądarkę
+selenium>=4.0.0
+
+# Development (opcjonalne)
+pytest>=7.4.0
+pytest-cov>=4.1.0
