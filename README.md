@@ -643,15 +643,15 @@ Autor nie ponosi odpowiedzialności za niewłaściwe użycie tego narzędzia.
 
 Jeśli masz pytania lub sugestie:
 
-- 🐛 **Zgłoś błąd:** [GitHub Issues](https://github.com/yourusername/instagram-content-downloader/issues)
-- 💡 **Propozycja funkcji:** [GitHub Discussions](https://github.com/yourusername/instagram-content-downloader/discussions)
-- 📧 **Email:** your.email@example.com
+- 🐛 **Zgłoś błąd:** [GitHub Issues](https://github.com/PlatinumWulf/instagram-content-downloader/issues)
+- 💡 **Propozycja funkcji:** [GitHub Discussions](https://github.com/PlatinumWulf/instagram-content-downloader/discussions)
+- 📧 **Email:** github@wulf.codes
 
 ---
 
 <div align="center">
 
-**Zrobione z ❤️ w Polsce**
+
 
 ⭐ Jeśli projekt Ci się podoba, zostaw gwiazdkę na GitHub!
 
