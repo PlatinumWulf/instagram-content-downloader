@@ -131,6 +131,10 @@ class InstagramDownloader:
         # Załaduj konfigurację
         self.config = config or ConfigManager()
 
+        # Katalog pobierania
+        self.download_dir = Path(self.config.get('download_dir', 'data/downloads')).resolve()
+        ensure_directory(self.download_dir)
+
         # Inicjalizuj Instaloader
         self.loader = instaloader.Instaloader(
             download_videos=self.config.get('download_videos', True),
@@ -143,6 +147,9 @@ class InstagramDownloader:
             max_connection_attempts=self.config.get('max_attempts', 3),
             request_timeout=self.config.get('request_timeout', 300.0)
         )
+
+        # Ustaw katalog roboczy Instaloadera
+        self.loader.dirname_pattern = str(self.download_dir / '{target}')
 
         # Inicjalizuj menedżera autoryzacji
         session_dir = self.config.get('session_dir', 'data/sessions')
@@ -158,10 +165,6 @@ class InstagramDownloader:
             min_delay=self.config.get('min_sleep_time', 2.0),
             max_delay=self.config.get('max_sleep_time', 30.0)
         )
-
-        # Katalog pobierania
-        self.download_dir = Path(self.config.get('download_dir', 'data/downloads'))
-        ensure_directory(self.download_dir)
 
         # AUTOMATYCZNIE załaduj sesję jeśli istnieje
         self.auth._load_session()
@@ -246,10 +249,6 @@ class InstagramDownloader:
 
             # Wyświetl informacje o profilu
             self._display_profile_info(profile)
-
-            # Przygotuj katalog docelowy
-            target_dir = self.download_dir / username
-            ensure_directory(target_dir)
 
             # Pobieraj różne typy zawartości
             if options.get('download_posts', self.config.get('download_posts', True)):
@@ -390,7 +389,7 @@ class InstagramDownloader:
                 for post in posts:
                     try:
                         # Pobierz post
-                        self.loader.download_post(post, target=str(self.download_dir / username))
+                        self.loader.download_post(post, target=username)
                         count += 1
                         pbar.update(1)
 
@@ -485,7 +484,7 @@ class InstagramDownloader:
         count = 0
 
         try:
-            target = str(self.download_dir / f"{username}_stories")
+            target = f"{username}_stories"
 
             for story in self.loader.get_stories(userids=[profile.userid]):
                 items = list(story.get_items())
@@ -530,7 +529,7 @@ class InstagramDownloader:
         count = 0
 
         try:
-            target = str(self.download_dir / f"{username}_highlights")
+            target = f"{username}_highlights"
 
             highlights = list(self.loader.get_highlights(user=profile))
 
@@ -584,7 +583,7 @@ class InstagramDownloader:
         count = 0
 
         try:
-            target = str(self.download_dir / f"{username}_tagged")
+            target = f"{username}_tagged"
             tagged_posts = list(profile.get_tagged_posts())
 
             with tqdm(total=len(tagged_posts), desc="Tagged posts", unit="post") as pbar:
@@ -630,7 +629,7 @@ class InstagramDownloader:
         count = 0
 
         try:
-            target = str(self.download_dir / f"{username}_igtv")
+            target = f"{username}_igtv"
             igtv_posts = list(profile.get_igtv_posts())
 
             with tqdm(total=len(igtv_posts), desc="IGTV", unit="video") as pbar:
