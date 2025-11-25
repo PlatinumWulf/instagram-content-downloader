@@ -18,6 +18,7 @@ from src.auth import AuthManager
 from src.utils import (
     validate_username,
     extract_username_from_url,
+    extract_shortcode_from_url,
     ensure_directory,
     calculate_rate_limit_delay,
     print_header,
@@ -657,3 +658,109 @@ class InstagramDownloader:
 
         logger.info(f"Pobrano {count} IGTV dla {username}")
         return count
+
+    def download_single_post(self, post_url: str) -> Dict[str, Any]:
+        """
+        Pobiera pojedynczy post/rolkę/reel z URL (bez logowania)
+
+        Args:
+            post_url: URL posta Instagram (np. https://instagram.com/p/ABC123/)
+
+        Returns:
+            Słownik ze statystykami pobierania
+        """
+        # Wyciągnij shortcode z URL
+        shortcode = extract_shortcode_from_url(post_url)
+
+        if not shortcode:
+            error_msg = f"Nie można wyciągnąć shortcode z URL: '{post_url}'"
+            print(f"❌ Błąd: {error_msg}")
+            logger.error(error_msg)
+            return {'success': False, 'error': error_msg}
+
+        stats = {
+            'shortcode': shortcode,
+            'success': False,
+            'url': post_url,
+            'errors': []
+        }
+
+        try:
+            print(f"\n📥 Pobieram post: {shortcode}")
+            logger.info(f"Pobieranie posta {shortcode}")
+
+            # Pobierz post przez shortcode
+            try:
+                post = instaloader.Post.from_shortcode(
+                    self.loader.context,
+                    shortcode
+                )
+            except ig_exc.QueryReturnedNotFoundException:
+                error_msg = f"Post '{shortcode}' nie istnieje lub został usunięty!"
+                print(f"❌ Błąd: {error_msg}")
+                logger.error(error_msg)
+                stats['errors'].append(error_msg)
+                return stats
+            except ig_exc.ConnectionException as e:
+                error_msg = f"Błąd połączenia: {e}"
+                print(f"❌ {error_msg}")
+                logger.error(error_msg)
+                stats['errors'].append(error_msg)
+                return stats
+
+            # Wyświetl informacje o poście
+            print_separator("-")
+            print(f"👤 Autor: @{post.owner_username}")
+            print(f"📅 Data: {post.date_local.strftime('%Y-%m-%d %H:%M')}")
+            print(f"❤️  Polubienia: {post.likes:,}")
+            print(f"💬 Komentarze: {post.comments}")
+
+            if post.is_video:
+                print(f"🎬 Typ: Wideo/Reel")
+                if post.video_view_count:
+                    print(f"👁️  Wyświetlenia: {post.video_view_count:,}")
+            else:
+                print(f"🖼️  Typ: Zdjęcie")
+
+            if post.caption:
+                caption_preview = post.caption[:100]
+                if len(post.caption) > 100:
+                    caption_preview += "..."
+                print(f"📝 Opis: {caption_preview}")
+
+            print_separator("-")
+
+            # Pobierz post - zapisz do folderu z nazwą użytkownika
+            target = post.owner_username
+
+            print(f"\n⬇️  Pobieranie...")
+            self.loader.download_post(post, target=target)
+
+            stats['success'] = True
+            stats['owner'] = post.owner_username
+            stats['is_video'] = post.is_video
+            stats['likes'] = post.likes
+
+            print(f"\n✅ Pobrano pomyślnie!")
+            print(f"📁 Zapisano do: {self.download_dir / target}")
+            logger.info(f"Pobrano post {shortcode} od @{post.owner_username}")
+
+        except ig_exc.LoginRequiredException:
+            error_msg = "Ten post wymaga zalogowania!"
+            print(f"❌ {error_msg}")
+            print("💡 Użyj: python3 main.py --browser-login")
+            logger.error(error_msg)
+            stats['errors'].append(error_msg)
+
+        except KeyboardInterrupt:
+            print("\n⚠️  Przerwano przez użytkownika")
+            logger.warning("Przerwano pobieranie przez użytkownika")
+            stats['interrupted'] = True
+
+        except Exception as e:
+            error_msg = f"Nieoczekiwany błąd: {e}"
+            print(f"❌ {error_msg}")
+            logger.error(error_msg, exc_info=True)
+            stats['errors'].append(error_msg)
+
+        return stats

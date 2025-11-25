@@ -61,6 +61,51 @@ def validate_username(username: str) -> str:
     return username.lower()
 
 
+def extract_shortcode_from_url(url: str) -> Optional[str]:
+    """
+    Wyciąga shortcode z URL posta/rolki/reela Instagram
+
+    Obsługiwane formaty:
+    - https://www.instagram.com/p/ABC123/
+    - https://www.instagram.com/reel/ABC123/
+    - https://www.instagram.com/reels/ABC123/
+    - https://instagram.com/p/ABC123/?igshid=xxx
+    - instagram.com/p/ABC123/
+
+    Args:
+        url: URL posta Instagram
+
+    Returns:
+        Shortcode posta lub None jeśli nie znaleziono
+    """
+    url = url.strip()
+
+    # Regex dla shortcode - obsługuje /p/, /reel/, /reels/, /tv/
+    patterns = [
+        r'instagram\.com/(?:p|reel|reels|tv)/([A-Za-z0-9_-]+)',
+    ]
+
+    for pattern in patterns:
+        match = re.search(pattern, url)
+        if match:
+            return match.group(1)
+
+    return None
+
+
+def is_post_url(url: str) -> bool:
+    """
+    Sprawdza czy URL jest linkiem do pojedynczego posta/rolki
+
+    Args:
+        url: URL do sprawdzenia
+
+    Returns:
+        True jeśli URL jest postem/rolką, False w przeciwnym razie
+    """
+    return extract_shortcode_from_url(url) is not None
+
+
 def extract_username_from_url(url: str) -> str:
     """
     Wyciąga nazwę użytkownika z URL Instagram

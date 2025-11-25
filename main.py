@@ -15,7 +15,7 @@ from src.config import ConfigManager
 from src.downloader import InstagramDownloader
 from src.batch import BatchDownloader
 from src.logger_setup import setup_logging_from_env
-from src.utils import print_header, print_separator
+from src.utils import print_header, print_separator, is_post_url
 
 __version__ = "3.0.0"
 
@@ -34,16 +34,17 @@ def interactive_mode(downloader: InstagramDownloader) -> None:
         print("MENU GŁÓWNE".center(60))
         print_separator("=")
         print("1. Pobierz profil (bez logowania)")
-        print("2. Zaloguj się przez przeglądarkę 🌐 (POLECANE)")
-        print("3. Zaloguj się (login/hasło)")
-        print("4. Pobierz profil (zalogowany)")
-        print("5. Pobieranie wsadowe z pliku")
-        print("6. Konfiguracja")
-        print("7. Wyloguj się")
+        print("2. Pobierz pojedynczy post/rolkę (bez logowania)")
+        print("3. Zaloguj się przez przeglądarkę 🌐 (POLECANE)")
+        print("4. Zaloguj się (login/hasło)")
+        print("5. Pobierz profil (zalogowany)")
+        print("6. Pobieranie wsadowe z pliku")
+        print("7. Konfiguracja")
+        print("8. Wyloguj się")
         print("0. Wyjście")
         print_separator("=")
 
-        choice = input("\nWybierz opcję (0-7): ").strip()
+        choice = input("\nWybierz opcję (0-8): ").strip()
 
         if choice == '1':
             # Pobierz bez logowania
@@ -52,26 +53,30 @@ def interactive_mode(downloader: InstagramDownloader) -> None:
                 downloader.download_profile(profile_url)
 
         elif choice == '2':
+            # Pobierz pojedynczy post/rolkę
+            post_url = input("\n🔗 Podaj URL posta/rolki (np. instagram.com/p/ABC123/): ").strip()
+            if post_url:
+                downloader.download_single_post(post_url)
+
+        elif choice == '3':
             # Logowanie przez przeglądarkę
             username = input("\n📧 Nazwa użytkownika (opcjonalne, Enter aby pominąć): ").strip()
             if downloader.auth.login_browser(username or None):
                 print("\n✅ Zalogowano pomyślnie przez przeglądarkę!")
-                # WAŻNE: Sesja jest już załadowana w obiekcie downloader.auth
-                # Nie trzeba restartować programu!
             else:
                 print("\n❌ Logowanie nieudane")
 
-        elif choice == '3':
+        elif choice == '4':
             # Logowanie login/hasło
             if downloader.auth.login():
                 print("\n✅ Zalogowano pomyślnie!")
             else:
                 print("\n❌ Logowanie nieudane")
 
-        elif choice == '4':
+        elif choice == '5':
             # Pobierz jako zalogowany
             if not downloader.auth.is_logged_in():
-                print("\n⚠️  Najpierw się zaloguj (opcja 2 lub 3)")
+                print("\n⚠️  Najpierw się zaloguj (opcja 3 lub 4)")
                 continue
 
             profile_url = input("\n📥 Podaj nazwę użytkownika lub URL: ").strip()
@@ -116,7 +121,7 @@ def interactive_mode(downloader: InstagramDownloader) -> None:
 
             downloader.download_profile(profile_url, download_options=options)
 
-        elif choice == '5':
+        elif choice == '6':
             # Pobieranie wsadowe
             file_path = input("\n📄 Podaj ścieżkę do pliku z listą profili: ").strip()
             if not file_path:
@@ -128,11 +133,11 @@ def interactive_mode(downloader: InstagramDownloader) -> None:
             batch = BatchDownloader(downloader, delay_between=delay_between)
             batch.download_from_file(file_path)
 
-        elif choice == '6':
+        elif choice == '7':
             # Konfiguracja
             _configure_settings(downloader)
 
-        elif choice == '7':
+        elif choice == '8':
             # Wyloguj
             downloader.auth.logout()
 
@@ -206,7 +211,9 @@ def main() -> None:
 Przykłady użycia:
   python main.py                              # Tryb interaktywny
   python main.py username                     # Szybkie pobieranie profilu
-  python main.py https://instagram.com/user/  # Pobierz z URL
+  python main.py https://instagram.com/user/  # Pobierz z URL profilu
+  python main.py https://instagram.com/p/ABC123/   # Pobierz pojedynczy post
+  python main.py https://instagram.com/reel/ABC123/ # Pobierz rolkę/reel
   python main.py -i                           # Tryb interaktywny
   python main.py -l                           # Tylko logowanie
   python main.py -b profiles.txt              # Pobieranie wsadowe
@@ -219,7 +226,7 @@ Więcej informacji: https://github.com/user/ig_content_downloader
     parser.add_argument(
         'profile',
         nargs='?',
-        help='Nazwa użytkownika lub URL profilu do pobrania'
+        help='Nazwa użytkownika, URL profilu lub URL posta/rolki do pobrania'
     )
 
     parser.add_argument(
@@ -332,7 +339,13 @@ Więcej informacji: https://github.com/user/ig_content_downloader
         # Spróbuj załadować sesję
         downloader.auth._load_session()
 
-        # Przygotuj opcje pobierania
+        # Sprawdź czy to URL posta/rolki
+        if is_post_url(args.profile):
+            # Pobierz pojedynczy post
+            downloader.download_single_post(args.profile)
+            return
+
+        # Przygotuj opcje pobierania dla profilu
         download_options = {}
 
         if args.all:
